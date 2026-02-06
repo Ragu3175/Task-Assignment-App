@@ -10,6 +10,8 @@ Task-Assignment-frontend/node_modules/
 # ======================
 .env
 .env.*
+Task-Assignment-backend/.env
+Task-Assignment-frontend/.env
 
 # ======================
 # Logs
