@@ -1,0 +1,7 @@
+# Node modules
+Task-Assignment-backend/node_modules/
+Task-Assignment-frontend/node_modules/
+
+# Environment files
+.env
+.env.*
