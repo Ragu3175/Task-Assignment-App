@@ -1,7 +1,37 @@
-# Node modules
+# ======================
+# Dependencies
+# ======================
+node_modules/
 Task-Assignment-backend/node_modules/
 Task-Assignment-frontend/node_modules/
 
-# Environment files
+# ======================
+# Environment variables
+# ======================
 .env
 .env.*
+
+# ======================
+# Logs
+# ======================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ======================
+# Build outputs
+# ======================
+dist/
+build/
+
+# ======================
+# OS & Editor files
+# ======================
+.DS_Store
+.vscode/
+.idea/
+
+# ======================
+# Optional: lock files (keep if you want reproducible builds)
+# ======================
+# package-lock.json
