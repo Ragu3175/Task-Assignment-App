@@ -1,0 +1,27 @@
+services:
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+
+  backend:
+    build: "./Task-Assignment-backend"
+    container_name: backend
+    env_file:
+      - "./Task-Assignment-backend/.env.production"
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+
+  frontend:
+    build:
+      context: ./Task-Assignment-frontend
+      args:
+        VITE_API_URL: http://localhost:5000
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend

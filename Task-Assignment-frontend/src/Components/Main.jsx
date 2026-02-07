@@ -19,11 +19,13 @@ function Main() {
   const [showAddMember, setShowAddMember] = useState(false);
    const [groupInbox,setGroupInbox] =useState([]);
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
   const handleSelectedGroup = async(groupId) => {
     try{
       const token = localStorage.getItem("token");
       if(!token) return;
-      const res = await axios.get(`http://localhost:5000/api/groups/${groupId}`,{
+      const res = await axios.get(`${API_URL}/api/groups/${groupId}`,{
         headers:{
           Authorization:`Bearer ${token}`
         }
@@ -48,7 +50,7 @@ function Main() {
 
         const decode = jwtDecode(token);
         setCurrentUserId(decode.user.id)
-        const newSocket = io('http://localhost:5000',{
+        const newSocket = io(`${API_URL}`,{
           auth:{token},
         });
         
@@ -82,7 +84,7 @@ function Main() {
     try{
       const token = localStorage.getItem('token');
       if(!token) return;
-      const res = await axios.post("http://localhost:5000/api/groups/addmembers",{
+      const res = await axios.post(`${API_URL}/api/groups/addmembers`,{
         groupId:selectedGroup.groupId,
         memberEmail
       },{

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 import axios from "axios";
 function Groupinbox({selectedTeam,groupInbox,setGroupInbox}) {
     // const [groupInbox,setGroupInbox] =useState([]);
+   const API_URL = import.meta.env.VITE_API_URL;
+
     useEffect(() => {
       const handleGroupInbox = async() => {
       try{
@@ -9,7 +11,7 @@ function Groupinbox({selectedTeam,groupInbox,setGroupInbox}) {
         if(!token){
           console.error("token problem in groupInbox function")
         }
-        const res = await axios.get(`http://localhost:5000/api/groups`,{
+        const res = await axios.get(`${API_URL}/api/groups`,{
           headers:{
                     Authorization:`Bearer ${token}`
                 }
@@ -27,7 +29,7 @@ function Groupinbox({selectedTeam,groupInbox,setGroupInbox}) {
       try{
         const token = localStorage.getItem('token');
         if(!token) return;
-        const res = await axios.delete(`http://localhost:5000/api/groups/${groupId}`,{
+        const res = await axios.delete(`${API_URL}/api/groups/${groupId}`,{
           headers:{
             Authorization:`Bearer ${token}`
           }

@@ -4,12 +4,13 @@ import { useEffect, useState } from "react"
 function CreateGroup({groupInbox,setGroupInbox}) {
     const [groupname,setGroupname] = useState("");
 
+     const API_URL = import.meta.env.VITE_API_URL;
    
     const handleGroups = async() => {
         try{
             const token = localStorage.getItem('token');
             if(!token) throw(new Error({message:"token is not provided in handleGroups "}));
-            const res = await axios.post("http://localhost:5000/api/groups",{
+            const res = await axios.post(`${API_URL}/api/groups`,{
                 groupname
             },{
                 headers:{
@@ -17,7 +18,7 @@ function CreateGroup({groupInbox,setGroupInbox}) {
                 }
             })
             if(res.status===201){
-                const groupres = await axios.get(`http://localhost:5000/api/groups`,
+                const groupres = await axios.get(`${API_URL}/api/groups`,
                     {
                         headers:{Authorization:`Bearer ${token}`}
                     })

@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: Task-Assignment-backend
+
+    env:
+      PORT: ${{ secrets.PORT }}
+      CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      TEST_DATABASE: ${{ secrets.TEST_DATABASE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: Task-Assignment-backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for MongoDB
+        run: |
+          until nc -z localhost 27017; do
+            echo "waiting for mongodb"
+            sleep 2
+          done
+          echo "mongodb is ready"
+
+      - name: Seed test database
+        run: npm run seed:test
+
+      - name: Start server
+        run: |
+          npm start &
+          sleep 3
+          for i in $(seq 1 15); do
+            curl -sf http://127.0.0.1:${{ secrets.PORT }}/ && break
+            sleep 2
+          done
+
+      - name: Run tests
+        run: npm run test
+        env:
+          TEST_API_URL: http://127.0.0.1:${{ secrets.PORT }}

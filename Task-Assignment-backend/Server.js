@@ -12,7 +12,10 @@ const {Server} = require('socket.io');
 const {Dbconnect} = require('./DbConfig/DbConfig')
 Dbconnect()
 
-app.use(cors());
+app.use(cors({
+     origin:['http://localhost:5173','http://192.168.1.3:5173'],
+    credentials:true
+}));
 app.use(express.json());
 
 app.get('/',(req,res) => {
@@ -29,8 +32,9 @@ app.use('/api/groups',groupRoute);
 const server = http.createServer(app);
 const io = new Server(server,{
     cors:{
-        origin:['http://localhost:5173'],
-        method:['GET','POST']
+        origin:['http://localhost:5173','http://192.168.1.3:5173'],
+        methods:['GET','POST'],
+        credentials:true
     }
 })
 
