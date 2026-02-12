@@ -12,8 +12,17 @@ const { Server } = require('socket.io');
 const { Dbconnect } = require('./DbConfig/DbConfig')
 Dbconnect()
 
+// CORS Configuration
+// We need to allow requests from your frontend domains (Vercel) to this backend (Render).
+// 'origin' specifies which domains are allowed to access this resource.
+// 'credentials: true' allows cookies and sessions to be sent.
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://192.168.1.3:5173'],
+    origin: [
+        'http://localhost:5173',
+        'http://192.168.1.3:5173',
+        'https://task-assignment-amz1jsx89-ragu3175s-projects.vercel.app',
+        'https://task-assignment-app-delta.vercel.app'
+    ],
     credentials: true
 }));
 app.use(express.json());
@@ -21,7 +30,14 @@ app.use(express.json());
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: ['http://localhost:5173', 'http://192.168.1.3:5173'],
+        // Socket.io needs its own CORS configuration.
+        // We must include the same frontend domains here to allow WebSocket connections.
+        origin: [
+            'http://localhost:5173',
+            'http://192.168.1.3:5173',
+            'https://task-assignment-amz1jsx89-ragu3175s-projects.vercel.app',
+            'https://task-assignment-app-delta.vercel.app'
+        ],
         methods: ['GET', 'POST'],
         credentials: true
     }
