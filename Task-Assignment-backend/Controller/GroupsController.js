@@ -161,6 +161,50 @@ const deleteGroup = async (req, res) => {
     }
 }
 
+const removeMember = async(req,res) => {
+    const {groupId,memberId} = req.params;
+    const currenUser = await User.findOne({email:req.body.email});
+    const existgroup = await Group.findById(groupId);
+    if(!existgroup){
+        return res.status(404).json({message:"group is not found"});
+    }
+    const isAdmin = await existgroup.admins.some(id => id.toString() === currenUser._id.toString());
+    if(!isAdmin){
+        return res.status(403).json({message:"only admin can remove member"})
+    }
+    const memberInDb = await User.findById(memberId);
+    if(!memberInDb){
+        return res.status(404).json({message:"member is not exist"})
+    }
+    existgroup.members = existgroup.members.filter((id) => id.toString()!==memberId);
+    memberInDb.teams = memberInDb.teams.filter((id) => id.toString() !== groupId);
+    
+    await existgroup.save();
+    await memberInDb.save();
+
+    const io = req.io;
+    const onlineUserId = req.onlineUserId;
+
+    const removedMemberSocket = onlineUserId.get(memberId)
+    if(removedMemberSocket){
+        io.to(removedMember).emit('removed-from-team',{groupId});
+    }
+
+    existgroup.members.forEach(member => {
+        const socketId = onlineUserId.get(member.toString());
+        if(socketId){
+            io.to(socketId).emit('member-removed-from-team',{
+                groupId,memberId
+            })
+        }
+    })
+    
+    res.status(200).json({message:"member removed succesfully"})
+    try{}catch(err){
+        res.status(500).json({message:"server error while remove member"});
+        console.error("server error while removing member")
+    }
+}
 
 
-module.exports = { creatGroup, addMemebers, getAllGroupMembers, getAllGroups, deleteGroup }
+module.exports = { creatGroup, addMemebers, getAllGroupMembers, getAllGroups, deleteGroup, removeMember}

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const validToken = require('../Middleware/jwtValidation');
 
-const {creatGroup,addMemebers,getAllGroupMembers,getAllGroups,deleteGroup} = require('../Controller/GroupsController');
+const {creatGroup,addMemebers,getAllGroupMembers,getAllGroups,deleteGroup,removeMember} = require('../Controller/GroupsController');
 
 
 
@@ -15,5 +15,7 @@ router.get('/',validToken,getAllGroups)
 router.get('/:groupId',validToken,getAllGroupMembers);
 
 router.delete('/:groupId',validToken,deleteGroup)
+
+router.delete('/:groupId/memberId',validToken,removeMember)
 
 module.exports = router;
