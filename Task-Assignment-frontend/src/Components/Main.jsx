@@ -223,7 +223,7 @@ function Main() {
                           <button onClick={visibleTaskInputs[member._id] ? () => sendTask(member._id) : () => setVisibleTaskInputs(prev => ({ ...prev, [member._id]: !prev[member._id] }))} >
                             {visibleTaskInputs[member._id] ? 'Send Task' : (member.status === "BUSY" ? 'Update Task' : 'Assign a task')}
                           </button>
-                          <button onClick={() => handleRemoveMember(selectedGroup._id,member._id)}>Remove</button>
+                          <button onClick={() => handleRemoveMember(selectedGroup.groupId,member._id)}>Remove</button>
                         </div>
                       </>
                     ) : (
