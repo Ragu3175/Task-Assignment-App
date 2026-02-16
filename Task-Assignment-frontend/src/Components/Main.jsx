@@ -106,20 +106,20 @@ function Main() {
       });
     });
 
-    newSocket.on('member-removed-from-team',(data) => {
-      console.log("member removed evet recieved",data);
+    newSocket.on('member-removed-from-team', (data) => {
+      console.log("member removed evet recieved", data);
       setSelectedGroup(prev => {
-        if(!prev || prev.groupId!==data.groupId) return prev;
+        if (!prev || prev.groupId !== data.groupId) return prev;
         return {
-          ...prev,members:prev.members.filter(member => member._id !== data.memberId )
+          ...prev, members: prev.members.filter(member => member._id !== data.memberId)
         }
       })
     })
 
-    newSocket.on('removed-from-team',(data) => {
-      console.log("you were removed from group",data);
+    newSocket.on('removed-from-team', (data) => {
+      console.log("you were removed from group", data);
       setGroupInbox(prev => prev.filter(group => group._id !== data.groupId))
-      setSelectedGroup(prev => prev?.groupId===data.groupId ? null : prev)
+      setSelectedGroup(prev => prev?.groupId === data.groupId ? null : prev)
       alert("you were removed from team")
     })
 
@@ -167,19 +167,20 @@ function Main() {
       console.error("something went wrong while sending task");
     }
   }
-  const handleRemoveMember = async(groupId,memberId) => {
-      try{
-        const token  = localStorage.getItem('token');
-        if(!token) return ;
-         await axios.delete(`${API_URL}/api/groups/${groupId}/${memberId}`,{
-          headers:{
-            Authorization:`Bearer ${token}`
-          }
-        })
-       
-      }catch(err){
-        console.error(err.response?.data?.message);
-      }
+  const handleRemoveMember = async (groupId, memberId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      await axios.delete(`${API_URL}/api/groups/${groupId}/${memberId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+    } catch (err) {
+      console.error(err.response?.data?.message);
+      alert(err.response?.data?.message || "Failed to remove member");
+    }
   }
 
   return (
@@ -223,7 +224,7 @@ function Main() {
                           <button onClick={visibleTaskInputs[member._id] ? () => sendTask(member._id) : () => setVisibleTaskInputs(prev => ({ ...prev, [member._id]: !prev[member._id] }))} >
                             {visibleTaskInputs[member._id] ? 'Send Task' : (member.status === "BUSY" ? 'Update Task' : 'Assign a task')}
                           </button>
-                          <button onClick={() => handleRemoveMember(selectedGroup.groupId,member._id)}>Remove</button>
+                          <button onClick={() => handleRemoveMember(selectedGroup.groupId, member._id)}>Remove</button>
                         </div>
                       </>
                     ) : (

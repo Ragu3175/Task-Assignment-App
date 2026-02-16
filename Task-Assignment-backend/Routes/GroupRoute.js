@@ -16,6 +16,6 @@ router.get('/:groupId',validToken,getAllGroupMembers);
 
 router.delete('/:groupId',validToken,deleteGroup)
 
-router.delete('/:groupId/memberId',validToken,removeMember)
+router.delete('/:groupId/:memberId',validToken,removeMember)
 
 module.exports = router;
