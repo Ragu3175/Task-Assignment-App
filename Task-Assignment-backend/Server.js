@@ -83,6 +83,7 @@ io.use((socket, next) => {
 })
 //
 
+
 io.on('connection', (socket) => {
 
     const UserId = socket.user.id
@@ -120,9 +121,9 @@ io.on('connection', (socket) => {
 
         // [MODIFIED] Emit to sender as well so their UI updates immediately without refresh
         io.to(socket.id).emit('task-assigned-to-user', taskData);
-
+        const msguser = await Users.findById(UserId)
         io.emit('task-received', {
-            msg: "task assigned"
+            msg: `${msguser.username} is  assign task to ${targetMember}`
         });
     });
     socket.on('disconnect', () => {

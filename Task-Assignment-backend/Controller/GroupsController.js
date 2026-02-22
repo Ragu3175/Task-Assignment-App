@@ -154,7 +154,21 @@ const deleteGroup = async (req, res) => {
             { _id: { $in: group.members } },
             { $pull: { teams: group._id } }
         )
-        await Group.findByIdAndDelete(groupId)
+        await Group.findByIdAndDelete(groupId);
+        const io = req.io;
+        const onlineUserId = req.onlineUserId;
+
+        if (io && onlineUserId) {
+            group.members.forEach(member => {
+                const socketId = onlineUserId.get(member.toString());
+                if (socketId) {
+                    io.to(socketId).emit('deleted-group', {
+                        groupId: group._id,
+                        msg: `${group.groupname} is deleted`
+                    })
+                }
+            })
+        } 
         res.status(200).json({ message: "Group deleted succesfully" })
     } catch (err) {
         res.status(500).json({ message: "server error in delete controller" });
