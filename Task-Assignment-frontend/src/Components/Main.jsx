@@ -217,42 +217,59 @@ function Main() {
               <div>
                 <ul>
                   {selectedGroup.members.map((member) => (
-                    <li key={member._id}>
-                      <h4>
-                        {member.username}
-                        <span className={`member-status ${member.status === "BUSY" ? 'status-busy' : 'status-free'}`}>
-                          {member.status}
-                        </span>
-                      </h4>
-                      {member._id !== currentUserId ? (
-                        <>
-                          {member.status === "BUSY" && member.currentTask && (
-                            <div className="current-task-display">
-                              <p><strong>Task:</strong> {member.currentTask?.task}</p>
-                              <p><strong>From:</strong> {member.currentTask?.from?.email}</p>
-                            </div>
-                          )}
-                          <div className="task-actions">
+                    <li key={member._id} className="member-card">
+                      <div className="member-info">
+                        <h4>
+                          {member.username}
+                          <span className={`member-status ${member.status === "BUSY" ? 'status-busy' : 'status-free'}`}>
+                            {member.status}
+                          </span>
+                        </h4>
+
+                        {member._id !== currentUserId ? (
+                          <>
+                            {member.status === "BUSY" && member.currentTask && (
+                              <div className="current-task-display">
+                                <p><strong>Task:</strong> {member.currentTask?.task}</p>
+                                <p><strong>From:</strong> {member.currentTask?.from?.email}</p>
+                              </div>
+                            )}
                             {visibleTaskInputs[member._id] && (
                               <input
                                 type="text"
                                 placeholder='Enter the task'
                                 value={assignTask}
                                 onChange={(e) => setassignTask(e.target.value)}
+                                className="member-task-input"
                               />
                             )}
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                              <button onClick={visibleTaskInputs[member._id] ? () => sendTask(member._id) : () => setVisibleTaskInputs(prev => ({ ...prev, [member._id]: true }))}>
-                                {visibleTaskInputs[member._id] ? 'Send' : 'Assign'}
-                              </button>
-                              <button onClick={() => handleRemoveMember(selectedGroup.groupId, member._id)} style={{ background: 'rgba(255,0,0,0.1)' }}>Remove</button>
-                            </div>
+                          </>
+                        ) : (
+                          <div className="my-task-card">
+                            <p className="my-task-label">MY TASKS - {selectedGroup.groupname}</p>
+                            <p className="my-task-content">{member.currentTask?.task || "No current task"}</p>
+                            {member.currentTask?.from && (
+                              <p className="my-task-from">From: {member.currentTask.from.email}</p>
+                            )}
                           </div>
-                        </>
-                      ) : (
-                        <div className="my-task-card">
-                          <p style={{ color: '#00e5ff', fontWeight: 'bold' }}>MY TASKS</p>
-                          <p>{member.currentTask?.task || "No current task"}</p>
+                        )}
+                      </div>
+
+                      {member._id !== currentUserId && (
+                        <div className="member-actions-vertical">
+                          <button
+                            className="action-btn-remove"
+                            onClick={() => handleRemoveMember(selectedGroup.groupId, member._id)}
+                            title="Remove Member"
+                          >
+                            ×
+                          </button>
+                          <button
+                            className="action-btn-main"
+                            onClick={visibleTaskInputs[member._id] ? () => sendTask(member._id) : () => setVisibleTaskInputs(prev => ({ ...prev, [member._id]: true }))}
+                          >
+                            {visibleTaskInputs[member._id] ? 'Send' : 'Assign'}
+                          </button>
                         </div>
                       )}
                     </li>
@@ -287,7 +304,7 @@ function Main() {
         <div className="sidebar-right">
           <div className="panel-header">
             <button className="mobile-back-btn" onClick={() => setMobileView('group')}>←</button>
-            <h2>Updates</h2>
+            <h2>Updates {selectedGroup ? `- ${selectedGroup.groupname}` : ""}</h2>
           </div>
           <div className="scroll-area">
             <Message setMessages={setMessages} message={messages} />

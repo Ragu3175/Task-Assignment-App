@@ -111,11 +111,11 @@ const getAllGroupMembers = async (req, res) => {
                 }
             }
         });
-        
+
         if (!group) {
             return res.status(404).json({ message: "cannot find the group" });
         }
-        res.status(200).json({ groupId: group._id, members: group.members })
+        res.status(200).json({ groupId: group._id, groupname: group.groupname, members: group.members })
     } catch (err) {
         res.status(500).json({ message: "server error in get all team members" });
         console.error("server error get all users", err)
@@ -168,7 +168,7 @@ const deleteGroup = async (req, res) => {
                     })
                 }
             })
-        } 
+        }
         res.status(200).json({ message: "Group deleted succesfully" })
     } catch (err) {
         res.status(500).json({ message: "server error in delete controller" });
@@ -176,28 +176,28 @@ const deleteGroup = async (req, res) => {
     }
 }
 
-const removeMember = async(req,res) => {
-    try{
-        const {groupId,memberId} = req.params;
-        const currentUser = await User.findOne({email:req.user.email});
+const removeMember = async (req, res) => {
+    try {
+        const { groupId, memberId } = req.params;
+        const currentUser = await User.findOne({ email: req.user.email });
         const existgroup = await Group.findById(groupId);
-        if(!currentUser){
-            return res.status(404).json({message:"current user is not found"})
+        if (!currentUser) {
+            return res.status(404).json({ message: "current user is not found" })
         }
-        if(!existgroup){
-            return res.status(404).json({message:"group is not found"});
+        if (!existgroup) {
+            return res.status(404).json({ message: "group is not found" });
         }
         const isAdmin = await existgroup.admins.some(id => id.toString() === currentUser._id.toString());
-        if(!isAdmin){
-            return res.status(403).json({message:"only admin can remove member"})
+        if (!isAdmin) {
+            return res.status(403).json({ message: "only admin can remove member" })
         }
         const memberInDb = await User.findById(memberId);
-        if(!memberInDb){
-            return res.status(404).json({message:"member is not exist"})
+        if (!memberInDb) {
+            return res.status(404).json({ message: "member is not exist" })
         }
-        existgroup.members = existgroup.members.filter((id) => id.toString()!==memberId);
+        existgroup.members = existgroup.members.filter((id) => id.toString() !== memberId);
         memberInDb.teams = memberInDb.teams.filter((id) => id.toString() !== groupId);
-        
+
         await existgroup.save();
         await memberInDb.save();
 
@@ -205,25 +205,25 @@ const removeMember = async(req,res) => {
         const onlineUserId = req.onlineUserId;
 
         const removedMemberSocket = onlineUserId.get(memberId)
-        if(removedMemberSocket){
-            io.to(removedMemberSocket).emit('removed-from-team',{groupId});
+        if (removedMemberSocket) {
+            io.to(removedMemberSocket).emit('removed-from-team', { groupId });
         }
 
         existgroup.members.forEach(member => {
             const socketId = onlineUserId.get(member.toString());
-            if(socketId){
-                io.to(socketId).emit('member-removed-from-team',{
-                    groupId,memberId
+            if (socketId) {
+                io.to(socketId).emit('member-removed-from-team', {
+                    groupId, memberId
                 })
             }
         })
-        
-        res.status(200).json({message:"member removed succesfully"})
-    }catch(err){
-        res.status(500).json({message:"server error while remove member"});
+
+        res.status(200).json({ message: "member removed succesfully" })
+    } catch (err) {
+        res.status(500).json({ message: "server error while remove member" });
         console.error("server error while removing member")
     }
 }
 
 
-module.exports = { creatGroup, addMemebers, getAllGroupMembers, getAllGroups, deleteGroup, removeMember}
+module.exports = { creatGroup, addMemebers, getAllGroupMembers, getAllGroups, deleteGroup, removeMember }

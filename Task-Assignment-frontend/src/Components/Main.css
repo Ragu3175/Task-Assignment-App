@@ -71,6 +71,183 @@
   flex: 1;
   overflow-y: auto;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* Gap between sections in sidebar */
+}
+
+/* Create Group Sidebar Refinements */
+.create-group-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.create-group-input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.create-group-btn-wide {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #00e5ff, #00afff);
+  border: none;
+  border-radius: 12px;
+  color: #000;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+}
+
+.create-group-btn-wide:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
+  filter: brightness(1.1);
+}
+
+/* Member Card Refinements */
+.member-card {
+  padding: 18px !important;
+  border-radius: 16px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  margin-bottom: 0 !important;
+  /* Managed by scroll-area gap */
+  display: flex !important;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.current-task-display {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 10px;
+  border-left: 3px solid #00e5ff;
+}
+
+.current-task-display p {
+  margin: 4px 0 !important;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.current-task-display strong {
+  color: #00e5ff;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin-right: 5px;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-actions-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-self: stretch;
+  /* Stretch to match height */
+  justify-content: center;
+}
+
+.action-btn-main,
+.action-btn-remove {
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  /* Uniform height */
+  min-width: 80px;
+  font-weight: 500;
+}
+
+.action-btn-main {
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  color: #00e5ff;
+}
+
+.action-btn-main:hover {
+  background: #00e5ff;
+  color: #000;
+}
+
+.action-btn-remove {
+  background: rgba(255, 77, 109, 0.1);
+  border: 1px solid rgba(255, 77, 109, 0.3);
+  color: #ff4d6d;
+}
+
+.action-btn-remove:hover {
+  background: #ff4d6d;
+  color: #fff;
+}
+
+.member-task-input {
+  flex: 1;
+  /* Take all available space */
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+/* My Task Styling */
+.my-task-card {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(0, 175, 255, 0.03));
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  margin-top: 10px;
+}
+
+.my-task-label {
+  color: #00e5ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 8px !important;
+  letter-spacing: 1px;
+}
+
+.my-task-content {
+  color: #fff;
+  font-size: 1.1rem;
+  /* Slightly larger task text */
+  margin: 0 !important;
+  font-weight: 500;
+}
+
+.my-task-from {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 10px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 8px;
 }
 
 /* Mobile Sliding Logic */
