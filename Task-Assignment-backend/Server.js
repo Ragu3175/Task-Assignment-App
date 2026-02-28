@@ -5,6 +5,8 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const TasksModel = require('./Models/Taskmodel');
 const Users = require('./Models/SignupModel');
+const msgUpdate = require('./Models/Msgupdatemodel');
+const GroupsModel = require('./Models/groupmodel');
 
 const http = require('http');
 const { Server } = require('socket.io');
@@ -90,7 +92,7 @@ io.on('connection', (socket) => {
     onlineUserId.set(UserId, socket.id)
     console.log(onlineUserId)
     console.log(`connected as ${socket.id}`)
-    socket.on('task-assigned', async ({ toUserId, task }) => {
+    socket.on('task-assigned', async ({ groupId, toUserId, task }) => {
         const targetMember = onlineUserId.get(toUserId)
         console.log(`task is assigned to`, targetMember);
 
@@ -98,11 +100,13 @@ io.on('connection', (socket) => {
             task: task,
             from: socket.user.id,
             assignedTo: toUserId,
+            status: "BUSY"
         });
         await Users.findByIdAndUpdate(toUserId, { status: "BUSY", currentTask: newTask._id })
 
         const taskData = {
             toUserId,
+            groupId,
             task: {
                 _id: newTask._id,
                 task: newTask.task,
@@ -121,9 +125,14 @@ io.on('connection', (socket) => {
 
         // [MODIFIED] Emit to sender as well so their UI updates immediately without refresh
         io.to(socket.id).emit('task-assigned-to-user', taskData);
-        const msguser = await Users.findById(UserId)
+        const msgfromuser = await Users.findById(UserId);
+        const msgtouser = await Users.findById(toUserId);
+        const group = await GroupsModel.findById(groupId);
+        const updateMsg = `${msgfromuser.username} assigned a task to ${msgtouser.username} - "${newTask.task}" from -${group.groupname}`;
+        await msgUpdate.create({ from: UserId, To: toUserId, msg: updateMsg });
+
         io.emit('task-received', {
-            msg: `${msguser.username} is  assign task to ${targetMember}`
+            msg: updateMsg
         });
     });
     socket.on('disconnect', () => {

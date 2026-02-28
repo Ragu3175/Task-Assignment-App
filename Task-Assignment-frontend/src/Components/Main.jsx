@@ -19,7 +19,7 @@ function Main() {
   const [groupInbox, setGroupInbox] = useState([]);
   const [messages, setMessages] = useState([]);
   const [mobileView, setMobileView] = useState('inbox'); // 'inbox', 'group', 'messages'
-
+  const [updateStatus, setUpdateStatus] = useState(null);
   const API_URL = import.meta.env.VITE_API_URL;
 
   const handleSelectedGroup = async (groupId) => {
@@ -123,6 +123,24 @@ function Main() {
       alert(data.msg || "Group was deleted");
     })
 
+    newSocket.on('task-completion-update', (data) => {
+      setSelectedGroup(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          members: prev.members.map(member =>
+            member._id === data.existmember._id
+              ? { ...member, status: data.existmember.status, currentTask: null }
+              : member
+          )
+        };
+      });
+
+    })
+    newSocket.on('task-completion-msg', (data) => {
+      setMessages(prev => Array.isArray(data) ? data : [...prev, data])
+    })
+
     setSocket(newSocket);
 
     return () => {
@@ -156,6 +174,7 @@ function Main() {
     if (!socket) return;
     try {
       socket.emit('task-assigned', {
+        groupId: selectedGroup.groupId,
         toUserId: memberId,
         task: assignTask,
       })
@@ -178,6 +197,20 @@ function Main() {
 
     } catch (err) {
       alert("Failed to remove member");
+    }
+  }
+
+  const handleUpdateStatus = async (groupId, memberId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const res = await axios.put(`${API_URL}/api/groups/${groupId}/${memberId}`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    } catch (err) {
+      console.error(err.response?.data?.message || "something went wrong while in frontend handleUpdateStatus")
     }
   }
 
@@ -255,23 +288,34 @@ function Main() {
                         )}
                       </div>
 
-                      {member._id !== currentUserId && (
-                        <div className="member-actions-vertical">
+                      <div className="member-actions-vertical">
+                        {member.currentTask && member._id === currentUserId && (
                           <button
-                            className="action-btn-remove"
-                            onClick={() => handleRemoveMember(selectedGroup.groupId, member._id)}
-                            title="Remove Member"
+                            className="action-btn-completed"
+                            onClick={() => handleUpdateStatus(selectedGroup.groupId, member._id)}
+                            title="Mark as Completed"
                           >
-                            ×
+                            Done
                           </button>
-                          <button
-                            className="action-btn-main"
-                            onClick={visibleTaskInputs[member._id] ? () => sendTask(member._id) : () => setVisibleTaskInputs(prev => ({ ...prev, [member._id]: true }))}
-                          >
-                            {visibleTaskInputs[member._id] ? 'Send' : 'Assign'}
-                          </button>
-                        </div>
-                      )}
+                        )}
+                        {member._id !== currentUserId && (
+                          <>
+                            <button
+                              className="action-btn-remove"
+                              onClick={() => handleRemoveMember(selectedGroup.groupId, member._id)}
+                              title="Remove Member"
+                            >
+                              ×
+                            </button>
+                            <button
+                              className="action-btn-main"
+                              onClick={visibleTaskInputs[member._id] ? () => sendTask(member._id) : () => setVisibleTaskInputs(prev => ({ ...prev, [member._id]: true }))}
+                            >
+                              {visibleTaskInputs[member._id] ? 'Send' : 'Assign'}
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>

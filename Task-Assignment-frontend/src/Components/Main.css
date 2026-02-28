@@ -204,6 +204,30 @@
   color: #fff;
 }
 
+.action-btn-completed {
+  background: rgba(0, 230, 118, 0.1);
+  border: 1px solid rgba(0, 230, 118, 0.3);
+  color: #00e676;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  min-width: 80px;
+  font-weight: 500;
+}
+
+.action-btn-completed:hover {
+  background: #00e676;
+  color: #000;
+  box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+}
+
 .member-task-input {
   flex: 1;
   /* Take all available space */

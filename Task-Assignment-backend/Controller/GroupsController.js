@@ -1,6 +1,7 @@
 const { populate } = require('dotenv');
 const User = require('../Models/SignupModel');
 const Group = require('../Models/groupmodel');
+const MsgUpdate = require('../Models/Msgupdatemodel')
 
 const creatGroup = async (req, res) => {
     try {
@@ -225,5 +226,65 @@ const removeMember = async (req, res) => {
     }
 }
 
+const updateStatus = async (req, res) => {
+    try {
+        const { groupId, memberId } = req.params;
+        const curentUser = await User.findById(req.user.id);
+        if (!curentUser) {
+            return res.status(404).json({ message: "current user is not found" });
+        }
+        const existgroup = await Group.findById(groupId);
+        if (!existgroup) {
+            return res.status(404).json({ message: "group is not found" })
+        }
+        const existmember = await User.findById(memberId).populate('currentTask');
+        if (!existmember) {
+            return res.status(404).json({ message: "cannot find the user in DB" })
+        }
+        const memberIsInGroup = await existgroup.members.some(id => id.toString() === existmember._id.toString());
+        if (!memberIsInGroup) {
+            return res.status(404).json({ message: "member is not in the group" });
+        }
 
-module.exports = { creatGroup, addMemebers, getAllGroupMembers, getAllGroups, deleteGroup, removeMember }
+        const taskName = existmember.currentTask ? existmember.currentTask.task : "a task";
+
+        existmember.status = "FREE"
+        existmember.currentTask = null; // Clear task so it's not BUSY on refresh
+        await existmember.save();
+        console.log(`[StatusUpdate] User ${existmember.username} marked as FREE. Task names was: ${taskName}`);
+
+        const io = req.io;
+        const onlineUserId = req.onlineUserId;
+
+        const message = `${existmember.username} completed his task ${taskName}`
+        await MsgUpdate.create({
+            from: existmember,
+            To: null,
+            msg: message
+        })
+
+        // Broadcast to ALL group members to sync UI
+        existgroup.members.forEach(member => {
+            const socketId = onlineUserId.get(member.toString());
+            if (socketId) {
+                // Update status in real-time
+                io.to(socketId).emit('task-completion-update', {
+                    existmember
+                });
+
+                // Add message to update panel
+                io.to(socketId).emit('task-completion-msg', {
+                    msg: message
+                })
+            }
+        })
+        res.status(200).json({ message: "status updated succesfully" })
+
+    } catch (err) {
+        res.status(500).json({ message: "server error while update status" });
+        console.error("server error while update status", err.message);
+    }
+}
+
+
+module.exports = { creatGroup, addMemebers, getAllGroupMembers, getAllGroups, deleteGroup, removeMember, updateStatus }
