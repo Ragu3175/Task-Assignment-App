@@ -23,8 +23,22 @@ const allowedOrigins = [
         : [])
 ];
 
+console.log("Allowed Origins initialized:", allowedOrigins);
+
 app.use(cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        const isAllowed = allowedOrigins.includes(origin);
+        console.log(`CORS Check: Origin [${origin}] - Allowed: [${isAllowed}]`);
+
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     optionsSuccessStatus: 200
 }));
