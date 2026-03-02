@@ -54,6 +54,19 @@
   border-bottom: 1px solid var(--border);
 }
 
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
 .column-header h1 {
   font-family: 'Orbitron', sans-serif;
   font-size: 1.25rem;

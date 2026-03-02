@@ -256,7 +256,10 @@ function Main() {
         <aside className="sidebar-left teams-column">
           <header className="column-header">
             <div className="header-info">
-              <h1>WorkNest</h1>
+              <div className="logo-wrapper">
+                <img src="/favicon.png" alt="WorkNest Logo" className="app-logo" />
+                <h1>WorkNest</h1>
+              </div>
               <p className="user-email">{localStorage.getItem("email")}</p>
             </div>
             <button
