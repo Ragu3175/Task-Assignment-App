@@ -395,7 +395,7 @@ function Main() {
             ) : (
               <div className="empty-state">
                 <div className="empty-icon">📂</div>
-                <h3>Welcome to TaskFlow</h3>
+                <h3>Welcome to WorkNest</h3>
                 <p>Select a team from the left sidebar to start managing your daily assignments and track progress in real-time.</p>
               </div>
             )}
