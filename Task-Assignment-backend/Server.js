@@ -18,21 +18,15 @@ Dbconnect()
 const allowedOrigins = [
     'http://localhost:5173',
     'http://192.168.1.3:5173',
-    ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : [])
+    ...(process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim().replace(/\/$/, ""))
+        : [])
 ];
 
 app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            console.error(`CORS Error: Origin ${origin} not allowed`);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true
+    origin: allowedOrigins,
+    credentials: true,
+    optionsSuccessStatus: 200
 }));
 app.use(express.json());
 
