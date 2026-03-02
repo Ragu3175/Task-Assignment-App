@@ -18,21 +18,46 @@ function Main() {
   const [showAddMember, setShowAddMember] = useState(false);
   const [groupInbox, setGroupInbox] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [mobileView, setMobileView] = useState('inbox'); // 'inbox', 'group', 'messages'
+  const [mobileView, setMobileView] = useState(() => {
+    return localStorage.getItem("mobileView") || 'inbox';
+  }); // 'inbox', 'group', 'messages'
   const [updateStatus, setUpdateStatus] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
   const API_URL = import.meta.env.VITE_API_URL;
 
-  const handleSelectedGroup = async (groupId) => {
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", isDarkMode ? "dark" : "light");
+    localStorage.setItem("theme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    localStorage.setItem("mobileView", mobileView);
+  }, [mobileView]);
+
+  const handleSelectedGroup = async (groupId, shouldChangeView = true) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
+      localStorage.setItem("selectedGroupId", groupId);
       const res = await axios.get(`${API_URL}/api/groups/${groupId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       })
       setSelectedGroup(res.data);
-      setMobileView('group'); // Slide to group view on mobile
+      if (shouldChangeView) {
+        setMobileView('group'); // Slide to group view on mobile
+      }
+
+      // Fetch group messages
+      const msgRes = await axios.get(`${API_URL}/api/groups/${groupId}/messages`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setMessages(msgRes.data);
     } catch (err) {
       console.error("something went wrong in handleselected group function")
     }
@@ -143,6 +168,15 @@ function Main() {
 
     setSocket(newSocket);
 
+    // [PERSISTENCE] Restore selected group details on refresh
+    const savedGroupId = localStorage.getItem("selectedGroupId");
+
+    if (savedGroupId) {
+      // Use setTimeOut to ensure state is ready if needed, 
+      // but usually handleSelectedGroup is fine here.
+      handleSelectedGroup(savedGroupId, false);
+    }
+
     return () => {
       newSocket.disconnect();
     }
@@ -215,145 +249,169 @@ function Main() {
   }
 
   return (
-    <div className="Main">
+    <div className={`MainContainer ${isDarkMode ? 'dark' : ''}`}>
       <div className={`sliding-wrapper view-${mobileView}`}>
 
-        {/* Sidebar Left: 20% - Group Inbox */}
-        <div className="sidebar-left leftside">
-          <div className="panel-header">
-            <h1>Teams</h1>
-            <button onClick={() => setMobileView('messages')} className="mobile-only-btn" style={{ display: 'none' }}>Updates</button>
-          </div>
+        {/* --- Column 1: Teams Sidebar --- */}
+        <aside className="sidebar-left teams-column">
+          <header className="column-header">
+            <div className="header-info">
+              <h1>TaskFlow</h1>
+              <p className="user-email">{localStorage.getItem("email")}</p>
+            </div>
+            <button
+              className="theme-toggle"
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              title="Toggle Theme"
+            >
+              {isDarkMode ? '☀️' : '🌙'}
+            </button>
+          </header>
+
           <div className="scroll-area">
             <CreateGroup groupInbox={groupInbox} setGroupInbox={setGroupInbox} />
+            <div className="section-divider">Teams</div>
             <Groupinbox
               selectedTeam={handleSelectedGroup}
               groupInbox={groupInbox}
               setGroupInbox={setGroupInbox}
             />
           </div>
-        </div>
 
-        {/* Center Content: 60% - Group Details & Tasks */}
-        <div className="center-content rightside">
-          <div className="panel-header">
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <button className="mobile-back-btn" onClick={() => setMobileView('inbox')}>←</button>
-              <h2>{selectedGroup ? selectedGroup.groupname : "Select a group"}</h2>
+          <button onClick={() => setMobileView('messages')} className="mobile-fab">
+            Updates
+          </button>
+        </aside>
+
+        {/* --- Column 2: Dashboard/Tasks --- */}
+        <main className="center-content task-column">
+          <header className="column-header">
+            <button className="mobile-btn icon-btn" onClick={() => setMobileView('inbox')}>❮</button>
+            <div className="group-title-area">
+              <h2>{selectedGroup ? selectedGroup.groupname : "Active Dashboard"}</h2>
+              {selectedGroup && <span className="member-count">{selectedGroup.members.length} Members</span>}
             </div>
             {selectedGroup && (
-              <button onClick={() => setMobileView('messages')} className="mobile-back-btn" style={{ fontSize: '1rem', marginLeft: 'auto' }}>Info</button>
+              <button onClick={() => setMobileView('messages')} className="info-btn-mobile">ⓘ</button>
             )}
-          </div>
+          </header>
+
           <div className="scroll-area">
             {selectedGroup ? (
-              <div>
-                <ul>
-                  {selectedGroup.members.map((member) => (
-                    <li key={member._id} className="member-card">
-                      <div className="member-info">
-                        <h4>
-                          {member.username}
-                          <span className={`member-status ${member.status === "BUSY" ? 'status-busy' : 'status-free'}`}>
-                            {member.status}
-                          </span>
-                        </h4>
+              <div className="dashboard-grid">
 
-                        {member._id !== currentUserId ? (
-                          <>
-                            {member.status === "BUSY" && member.currentTask && (
-                              <div className="current-task-display">
-                                <p><strong>Task:</strong> {member.currentTask?.task}</p>
-                                <p><strong>From:</strong> {member.currentTask?.from?.email}</p>
-                              </div>
-                            )}
-                            {visibleTaskInputs[member._id] && (
-                              <input
-                                type="text"
-                                placeholder='Enter the task'
-                                value={assignTask}
-                                onChange={(e) => setassignTask(e.target.value)}
-                                className="member-task-input"
-                              />
-                            )}
-                          </>
-                        ) : (
-                          <div className="my-task-card">
-                            <p className="my-task-label">MY TASKS - {selectedGroup.groupname}</p>
-                            <p className="my-task-content">{member.currentTask?.task || "No current task"}</p>
-                            {member.currentTask?.from && (
-                              <p className="my-task-from">From: {member.currentTask.from.email}</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="member-actions-vertical">
-                        {member.currentTask && member._id === currentUserId && (
+                {/* My Task Section */}
+                {(() => {
+                  const me = selectedGroup.members.find(m => m._id.toString() === currentUserId?.toString());
+                  return me ? (
+                    <section className="my-task-section">
+                      <div className="section-label">MY ASSIGNMENT</div>
+                      <div className="premium-task-card mine">
+                        <div className="task-body">
+                          <h3>{me.currentTask?.task || "Focused & Ready"}</h3>
+                          {me.currentTask?.from && (
+                            <p className="task-meta">Assigned by: <span>{me.currentTask.from.username || me.currentTask.from.email}</span></p>
+                          )}
+                        </div>
+                        {me.currentTask && (
                           <button
-                            className="action-btn-completed"
-                            onClick={() => handleUpdateStatus(selectedGroup.groupId, member._id)}
-                            title="Mark as Completed"
+                            className="complete-btn"
+                            onClick={() => handleUpdateStatus(selectedGroup.groupId, me._id)}
                           >
-                            Done
+                            Mark Completed
                           </button>
                         )}
-                        {member._id !== currentUserId && (
-                          <>
-                            <button
-                              className="action-btn-remove"
-                              onClick={() => handleRemoveMember(selectedGroup.groupId, member._id)}
-                              title="Remove Member"
-                            >
-                              ×
-                            </button>
-                            <button
-                              className="action-btn-main"
-                              onClick={visibleTaskInputs[member._id] ? () => sendTask(member._id) : () => setVisibleTaskInputs(prev => ({ ...prev, [member._id]: true }))}
-                            >
-                              {visibleTaskInputs[member._id] ? 'Send' : 'Assign'}
-                            </button>
-                          </>
-                        )}
                       </div>
-                    </li>
-                  ))}
-                </ul>
-                <div className="add-member-section">
-                  {showAddMember ? (
-                    <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+                    </section>
+                  ) : null;
+                })()}
+
+                {/* Team Management */}
+                <section className="team-section">
+                  <div className="section-header">
+                    <div className="section-label">TEAM MEMBERS</div>
+                    <button className="add-member-trigger" onClick={() => setShowAddMember(!showAddMember)}>
+                      {showAddMember ? 'Cancel' : '+ Add Member'}
+                    </button>
+                  </div>
+
+                  {showAddMember && (
+                    <div className="add-member-form animate-in">
                       <input
-                        type="text"
-                        placeholder='Member Email'
+                        type="email"
+                        placeholder="Invite by email address..."
                         value={memberEmail}
                         onChange={(e) => setMemberEmail(e.target.value)}
-                        style={{ flex: 1 }}
                       />
-                      <button onClick={handleAddMember}>Add</button>
+                      <button className="primary" onClick={handleAddMember}>Send Invite</button>
                     </div>
-                  ) : (
-                    <button onClick={() => setShowAddMember(true)} style={{ width: '100%' }}>+ ADD MEMBER</button>
                   )}
-                </div>
+
+                  <div className="member-list">
+                    {selectedGroup.members.map((member) => (
+                      member._id !== currentUserId && (
+                        <div key={member._id} className="premium-member-card">
+                          <div className="member-header">
+                            <div className="member-info-main">
+                              <div className="member-avatar">{member.username.charAt(0)}</div>
+                              <div className="member-name-group">
+                                <h4>{member.username}</h4>
+                                <span className={`badge ${member.status.toLowerCase()}`}>{member.status}</span>
+                              </div>
+                            </div>
+                            <button className="remove-btn" onClick={() => handleRemoveMember(selectedGroup.groupId, member._id)}>×</button>
+                          </div>
+
+                          <div className="member-task-area">
+                            {member.status === "BUSY" ? (
+                              <div className="active-task-display">
+                                <p className="task-text">{member.currentTask?.task}</p>
+                                <p className="assigned-by">Assigned by: {member.currentTask?.from?.username}</p>
+                              </div>
+                            ) : (
+                              <div className="assign-input-group">
+                                <input
+                                  type="text"
+                                  placeholder="Assign a task..."
+                                  value={assignTask}
+                                  onChange={(e) => setassignTask(e.target.value)}
+                                  className={visibleTaskInputs[member._id] ? 'visible' : 'hidden'}
+                                />
+                                <button
+                                  className={visibleTaskInputs[member._id] ? 'primary' : 'secondary'}
+                                  onClick={visibleTaskInputs[member._id] ? () => sendTask(member._id) : () => setVisibleTaskInputs(prev => ({ ...prev, [member._id]: true }))}
+                                >
+                                  {visibleTaskInputs[member._id] ? 'Assign Now' : 'Assign Task'}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </section>
               </div>
             ) : (
-              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)' }}>
-                <p>Welcome! Select a team to start assigning tasks.</p>
+              <div className="empty-state">
+                <div className="empty-icon">📂</div>
+                <h3>Welcome to TaskFlow</h3>
+                <p>Select a team from the left sidebar to start managing your daily assignments and track progress in real-time.</p>
               </div>
             )}
           </div>
-        </div>
+        </main>
 
-        {/* Sidebar Right: 20% - Messages/Updates */}
-        <div className="sidebar-right">
-          <div className="panel-header">
-            <button className="mobile-back-btn" onClick={() => setMobileView('group')}>←</button>
-            <h2>Updates {selectedGroup ? `- ${selectedGroup.groupname}` : ""}</h2>
-          </div>
+        {/* --- Column 3: Updates Feed --- */}
+        <aside className="sidebar-right updates-column">
+          <header className="column-header">
+            <button className="mobile-btn icon-btn" onClick={() => setMobileView('group')}>❮</button>
+            <h2>Activity Logs</h2>
+          </header>
           <div className="scroll-area">
             <Message setMessages={setMessages} message={messages} />
           </div>
-        </div>
+        </aside>
 
       </div>
     </div>

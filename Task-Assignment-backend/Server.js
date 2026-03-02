@@ -129,7 +129,7 @@ io.on('connection', (socket) => {
         const msgtouser = await Users.findById(toUserId);
         const group = await GroupsModel.findById(groupId);
         const updateMsg = `${msgfromuser.username} assigned a task to ${msgtouser.username} - "${newTask.task}" from -${group.groupname}`;
-        await msgUpdate.create({ from: UserId, To: toUserId, msg: updateMsg });
+        await msgUpdate.create({ from: UserId, To: toUserId, groupId: groupId, msg: updateMsg });
 
         io.emit('task-received', {
             msg: updateMsg

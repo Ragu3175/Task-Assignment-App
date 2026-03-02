@@ -45,8 +45,8 @@ function Groupinbox({ selectedTeam, groupInbox, setGroupInbox }) {
   }
 
   return (
-    <div>
-      <ul>
+    <div className="group-inbox-container">
+      <ul className="inbox-list">
         {(groupInbox ?? []).filter(g => g && g._id).map((g) => (
           <li key={g?._id} onClick={() => g._id && selectedTeam(g._id)} className="inbox-item">
             <span className="group-name-text">{g?.groupname ?? g?.groupName ?? "Unnamed"}</span>

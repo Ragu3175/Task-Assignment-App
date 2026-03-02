@@ -260,6 +260,7 @@ const updateStatus = async (req, res) => {
         await MsgUpdate.create({
             from: existmember,
             To: null,
+            groupId: groupId,
             msg: message
         })
 
@@ -287,4 +288,15 @@ const updateStatus = async (req, res) => {
 }
 
 
-module.exports = { creatGroup, addMemebers, getAllGroupMembers, getAllGroups, deleteGroup, removeMember, updateStatus }
+const getGroupMessages = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const messages = await MsgUpdate.find({ groupId }).sort({ createdAt: 1 });
+        res.status(200).json(messages);
+    } catch (err) {
+        res.status(500).json({ message: "server error while fetching group messages" });
+        console.error("server error while fetching group messages", err);
+    }
+}
+
+module.exports = { creatGroup, addMemebers, getAllGroupMembers, getAllGroups, deleteGroup, removeMember, updateStatus, getGroupMessages }
