@@ -256,7 +256,7 @@ function Main() {
         <aside className="sidebar-left teams-column">
           <header className="column-header">
             <div className="header-info">
-              <h1>TaskFlow</h1>
+              <h1>WorkNest</h1>
               <p className="user-email">{localStorage.getItem("email")}</p>
             </div>
             <button
