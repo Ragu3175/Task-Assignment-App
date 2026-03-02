@@ -15,16 +15,22 @@ const { Dbconnect } = require('./DbConfig/DbConfig')
 Dbconnect()
 
 // CORS Configuration
-// We need to allow requests from your frontend domains (Vercel) to this backend (Render).
-// 'origin' specifies which domains are allowed to access this resource.
-// 'credentials: true' allows cookies and sessions to be sent.
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://192.168.1.3:5173',
+    ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [])
+];
+
 app.use(cors({
-    origin: [
-        'http://localhost:5173',
-        'http://192.168.1.3:5173',
-        'https://task-assignment-amz1jsx89-ragu3175s-projects.vercel.app',
-        'https://task-assignment-app-delta.vercel.app'
-    ],
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(express.json());
@@ -32,14 +38,7 @@ app.use(express.json());
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        // Socket.io needs its own CORS configuration.
-        // We must include the same frontend domains here to allow WebSocket connections.
-        origin: [
-            'http://localhost:5173',
-            'http://192.168.1.3:5173',
-            'https://task-assignment-amz1jsx89-ragu3175s-projects.vercel.app',
-            'https://task-assignment-app-delta.vercel.app'
-        ],
+        origin: allowedOrigins,
         methods: ['GET', 'POST'],
         credentials: true
     }
