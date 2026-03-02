@@ -330,20 +330,20 @@ function Main() {
                 <section className="team-section">
                   <div className="section-header">
                     <div className="section-label">TEAM MEMBERS</div>
-                    <button className="add-member-trigger" onClick={() => setShowAddMember(!showAddMember)}>
-                      {showAddMember ? 'Cancel' : '+ Add Member'}
-                    </button>
                   </div>
 
                   {showAddMember && (
                     <div className="add-member-form animate-in">
-                      <input
-                        type="email"
-                        placeholder="Invite by email address..."
-                        value={memberEmail}
-                        onChange={(e) => setMemberEmail(e.target.value)}
-                      />
-                      <button className="primary" onClick={handleAddMember}>Send Invite</button>
+                      <div className="form-inner">
+                        <input
+                          type="email"
+                          placeholder="Invite by email address..."
+                          value={memberEmail}
+                          onChange={(e) => setMemberEmail(e.target.value)}
+                        />
+                        <button className="primary" onClick={handleAddMember}>Send Invite</button>
+                        <button className="cancel-mobile-btn" onClick={() => setShowAddMember(false)}>Cancel</button>
+                      </div>
                     </div>
                   )}
 
@@ -400,6 +400,15 @@ function Main() {
               </div>
             )}
           </div>
+          {selectedGroup && (
+            <button
+              className="whatsapp-fab"
+              onClick={() => setShowAddMember(!showAddMember)}
+              title="Add Member"
+            >
+              {showAddMember ? '×' : '+'}
+            </button>
+          )}
         </main>
 
         {/* --- Column 3: Updates Feed --- */}
