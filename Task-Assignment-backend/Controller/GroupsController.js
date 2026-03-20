@@ -3,6 +3,7 @@ const User = require('../Models/SignupModel');
 const Group = require('../Models/groupmodel');
 const MsgUpdate = require('../Models/Msgupdatemodel')
 
+// Create a new group
 const creatGroup = async (req, res) => {
     try {
         const { groupname } = req.body;
@@ -24,6 +25,8 @@ const creatGroup = async (req, res) => {
         console.error("server error creating a group", err)
     }
 }
+
+// Add a new member to a group
 const addMemebers = async (req, res) => {
     try {
         const { groupId, memberEmail } = req.body;
@@ -97,6 +100,7 @@ const addMemebers = async (req, res) => {
     }
 }
 
+// Get all members of a group
 const getAllGroupMembers = async (req, res) => {
     try {
         const { groupId } = req.params;
@@ -123,6 +127,7 @@ const getAllGroupMembers = async (req, res) => {
     }
 }
 
+// Get all groups for a user
 const getAllGroups = async (req, res) => {
     try {
         const currentUser = await User.findOne({ email: req.user.email }).populate('teams');
@@ -136,6 +141,7 @@ const getAllGroups = async (req, res) => {
     }
 }
 
+// Delete a group
 const deleteGroup = async (req, res) => {
     try {
         const { groupId } = req.params;
@@ -177,6 +183,7 @@ const deleteGroup = async (req, res) => {
     }
 }
 
+// Remove a member from a group
 const removeMember = async (req, res) => {
     try {
         const { groupId, memberId } = req.params;
@@ -226,6 +233,7 @@ const removeMember = async (req, res) => {
     }
 }
 
+// Update the status of a member
 const updateStatus = async (req, res) => {
     try {
         const { groupId, memberId } = req.params;
@@ -287,7 +295,7 @@ const updateStatus = async (req, res) => {
     }
 }
 
-
+// Get all messages for a group
 const getGroupMessages = async (req, res) => {
     try {
         const { groupId } = req.params;
